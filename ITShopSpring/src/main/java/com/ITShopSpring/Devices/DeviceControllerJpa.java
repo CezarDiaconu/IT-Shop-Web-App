@@ -52,38 +52,72 @@ public class DeviceControllerJpa {
 		 return deviceRepository.save(newDevice);
 	    }
 	
-	@PatchMapping("/update-device")
-	public ResponseEntity<Device> updateDevice(@RequestBody Map<String, String> updateData) {
-	    String productName = updateData.get("productName");
-	    String attributeToChange = updateData.get("attributeToChange");
-	    String newValue = updateData.get("newValue");
-	    
-	    
-	    System.out.println("Received productName: " + productName);
-	    System.out.println("Received attributeToChange: " + attributeToChange);
-	    System.out.println("Received newValue: " + newValue);
-	    
-	    Device device = deviceRepository.findByName(productName);
-	    
-	    if(device != null) {
-	    	switch (attributeToChange) {
-	    	case "quantity":
-	    		int newQuantity = Integer.parseInt(newValue);
-                device.setQuantity(newQuantity);
-                break;
-	    	case "price":
-	    		 int newPrice = Integer.parseInt(newValue);
-	                device.setPrice(newPrice);
-	                break;
-	        default: break;
-	    							   }
-	    	deviceRepository.save(device);
-	    	return ResponseEntity.ok(device);
-	    	}
-	    	else {
-	    		return ResponseEntity.notFound().build();
-	    	}
+	@PatchMapping("/buy-device")
+	public ResponseEntity<Device> buyDevice(@RequestBody Map<String, String> deviceInfo) {
+	    String productName = deviceInfo.get("productName");
+
+	    if (productName != null) {
+	        Device device = deviceRepository.findByName(productName);
+
+	        if (device != null && device.getQuantity() > 0) {
+	            device.setQuantity(device.getQuantity() - 1);
+	            deviceRepository.save(device);
+	            return ResponseEntity.ok(device);
+	        } else {
+	            return ResponseEntity.notFound().build();
+	        }
+	    } else {
+	        return ResponseEntity.badRequest().build();
+	    }
 	}
+	@PatchMapping("/update-device")
+	public ResponseEntity<Device> updateDevice(@RequestBody Map<String, String> deviceInfo){
+		String productName = deviceInfo.get("productName");
+		String attributeToChange = deviceInfo.get("attributeToChange");
+		String newValue = deviceInfo.get("newValue");
+		
+		if (productName != null && attributeToChange != null && newValue != null) {
+	        Device device = deviceRepository.findByName(productName);
+		
+	        if(device != null)
+	        {
+	        	switch (attributeToChange) {
+			  	case "brand":
+			  		device.setBrand(newValue);
+			  		break;
+			  	case "deviceType":
+			  		device.setDeviceType(newValue);
+			  		break;
+			  	case "price":
+			  		int newPrice = 0; 
+                    try {
+                        newPrice = Integer.parseInt(newValue);
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+                    device.setPrice(newPrice);
+                    break;
+			  	case "quantity":
+			  		int newQuantity = 0; 
+                    try {
+                        newQuantity = Integer.parseInt(newValue);
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+                    device.setPrice(newQuantity);
+                    break;
+			  	default: break;
+			  }
+	        	deviceRepository.save(device);
+				return ResponseEntity.ok(device);
+	        }
+	        else {
+	        	return ResponseEntity.notFound().build();
+	        } 
+		}
+		return ResponseEntity.notFound().build(); 
+	}
+
 		
 	
 	

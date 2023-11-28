@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ITShopSpring.Devices.Device;
 
+import jakarta.transaction.Transactional;
+
 @RestController
 public class UserControllerJpa {
 	
@@ -118,18 +120,17 @@ public class UserControllerJpa {
 		  }
 		  
 		  @DeleteMapping("/delete-user")
-		  public ResponseEntity<String> deleteUser(@RequestBody Map<String, String> deleteUser){
-			  String username = deleteUser.get("username");
-			  
-			 User user = userRepository.findByUsername(username);
-			  
-			  if( user != null)
-			  {
-				  userRepository.deleteByUsername(username);
-				  return ResponseEntity.ok("User deleted");
-			  }
-			  else {
-				  return ResponseEntity.notFound().build();
-			  }
+		  @Transactional
+		  public ResponseEntity<String> deleteUser(@RequestBody Map<String, String> deleteUser) {
+		      String username = deleteUser.get("username");
+
+		      try {
+		          // Delete by username using the custom repository method
+		          userRepository.deleteByUsername(username);
+		          return ResponseEntity.ok("User deleted");
+		      } catch (Exception e) {
+		          e.printStackTrace();
+		          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete user");
+		      }
 		  }
 	}
